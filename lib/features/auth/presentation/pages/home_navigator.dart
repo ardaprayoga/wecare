@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/constants/api_constants.dart';
 
 // Import fitur lain
 import '../../../service_package/presentation/pages/manage_packages_page.dart';
@@ -22,7 +23,7 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Future<Map<String, dynamic>> _getStats() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2/mycare_api/get_admin_stats.php'));
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/get_admin_stats.php'));
     if (response.statusCode == 200) return json.decode(response.body);
     throw Exception("Gagal memuat statistik");
   }
@@ -58,6 +59,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Row(
                   children: [
                     _buildStatCard("Pesanan Selesai", "${data['total_orders']}", Colors.blue),
+                    const SizedBox(width: 8),
                     _buildStatCard("Total Omzet", "Rp ${data['total_revenue']}", Colors.green),
                   ],
                 ),
@@ -78,7 +80,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final url = Uri.parse('http://10.0.2.2/mycare_api/export_orders.php');
+                    final url = Uri.parse('${ApiConstants.baseUrl}/export_orders.php');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url, mode: LaunchMode.externalApplication);
                     }
@@ -97,6 +99,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Row(
                   children: [
                     _buildStatCard("Pelanggan", "${userCounts['pelanggan'] ?? 0}", Colors.orange),
+                    const SizedBox(width: 8),
                     _buildStatCard("Mitra", "${userCounts['mitra'] ?? 0}", Colors.teal),
                   ],
                 ),
@@ -194,7 +197,10 @@ class _MitraDashboardPageState extends State<MitraDashboardPage> with SingleTick
               child: ListTile(
                 title: Text(order['package_name']),
                 subtitle: Text("${order['address']}\nJadwal: ${order['service_date']}"),
-                trailing: ElevatedButton(onPressed: () => _acceptOrder(order['id']), child: const Text("AMBIL")),
+                trailing: ElevatedButton(
+                  onPressed: () => _acceptOrder(order['id']), 
+                  child: const Text("AMBIL")
+                ),
               ),
             );
           },
@@ -228,12 +234,15 @@ class _MitraDashboardPageState extends State<MitraDashboardPage> with SingleTick
   }
 
   Future<List<dynamic>> _fetchData(String endpoint) async {
-    final res = await http.get(Uri.parse('http://10.0.2.2/mycare_api/$endpoint'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$endpoint'));
     return json.decode(res.body)['data'];
   }
 
   void _acceptOrder(dynamic id) async {
-    await http.post(Uri.parse('http://10.0.2.2/mycare_api/accept_order.php'), body: {'order_id': id.toString(), 'mitra_id': widget.user.id.toString()});
+    await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/accept_order.php'), 
+      body: {'order_id': id.toString(), 'mitra_id': widget.user.id.toString()}
+    );
     setState(() {});
   }
 }
@@ -254,8 +263,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Kita hapus Scaffold di dalam children untuk menghindari nested Scaffold
     final List<Widget> children = [
-      _buildHomeContent(),
+      _HomeTab(user: widget.user),
       OrderHistoryPage(userId: widget.user.id),
       ProfilePage(user: widget.user),
     ];
@@ -273,14 +283,31 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       ),
     );
   }
+}
 
-  Widget _buildHomeContent() {
+// Widget terpisah untuk isi tab Home agar kode tidak menumpuk
+class _HomeTab extends StatelessWidget {
+  final UserEntity user;
+  const _HomeTab({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Halo, ${widget.user.name}")),
+      appBar: AppBar(
+        title: Text("Halo, ${user.name}"),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
       body: FutureBuilder<List<dynamic>>(
-        future: http.get(Uri.parse('http://10.0.2.2/mycare_api/get_packages.php')).then((res) => json.decode(res.body)['data']),
+        future: http.get(Uri.parse('${ApiConstants.baseUrl}/get_packages.php')).then((res) => json.decode(res.body)['data']),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
+          
           final packages = snapshot.data ?? [];
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -292,7 +319,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   title: Text(pkg['package_name']),
                   subtitle: Text(pkg['description']),
                   trailing: ElevatedButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => OrderFormPage(package: pkg, userId: widget.user.id))),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => OrderFormPage(package: pkg, userId: user.id))),
                     child: const Text("Pesan"),
                   ),
                 ),

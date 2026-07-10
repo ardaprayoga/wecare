@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../auth/domain/entities/user_entity.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../../core/constants/api_constants.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserEntity user;
@@ -28,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2/mycare_api/update_profile.php'),
+        Uri.parse('${ApiConstants.baseUrl}/update_profile.php'),
         body: {
           'id': widget.user.id.toString(),
           'name': _nameController.text,

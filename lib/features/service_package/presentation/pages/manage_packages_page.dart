@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../../core/constants/api_constants.dart';
 
 class ManagePackagesPage extends StatefulWidget {
   const ManagePackagesPage({super.key});
@@ -11,7 +12,7 @@ class ManagePackagesPage extends StatefulWidget {
 
 class _ManagePackagesPageState extends State<ManagePackagesPage> {
   Future<List<dynamic>> _getPackages() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2/mycare_api/get_packages.php'));
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/get_packages.php'));
     if (response.statusCode == 200) return json.decode(response.body)['data'];
     throw Exception("Gagal memuat paket");
   }
@@ -25,9 +26,13 @@ class _ManagePackagesPageState extends State<ManagePackagesPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.only(
+          top: 24,
+          left: 24,
+          right: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +54,7 @@ class _ManagePackagesPageState extends State<ManagePackagesPage> {
             ElevatedButton(
               onPressed: () async {
                 final response = await http.post(
-                  Uri.parse('http://10.0.2.2/mycare_api/upsert_package.php'),
+                  Uri.parse('${ApiConstants.baseUrl}/upsert_package.php'),
                   body: {
                     if (package != null) 'id': package['id'].toString(),
                     'package_name': nameCtrl.text,

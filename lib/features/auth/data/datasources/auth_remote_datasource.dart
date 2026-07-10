@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
+import '../../../../core/constants/api_constants.dart';
 
 class AuthRemoteDataSource {
-  final String baseUrl = "http://10.0.2.2/mycare_api";
+  // Mengambil baseUrl secara dinamis (localhost untuk Web, 10.0.2.2 untuk Emulator)
+  final String baseUrl = ApiConstants.baseUrl;
 
   Future<UserModel> login(String email, String password) async {
     final response = await http.post(
