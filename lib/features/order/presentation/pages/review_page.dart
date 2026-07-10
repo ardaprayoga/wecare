@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../../core/constants/api_constants.dart';
 
 class ReviewPage extends StatefulWidget {
   final Map<String, dynamic> order;
@@ -19,7 +20,7 @@ class _ReviewPageState extends State<ReviewPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2/mycare_api/add_review.php'),
+        Uri.parse('${ApiConstants.baseUrl}/add_review.php'),
         body: {
           'order_id': widget.order['id'].toString(),
           'customer_id': widget.order['customer_id'].toString(),

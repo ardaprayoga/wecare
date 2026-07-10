@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../../core/constants/api_constants.dart';
 
 import 'review_page.dart';
 
@@ -14,7 +15,7 @@ class OrderHistoryPage extends StatefulWidget {
 
 class _OrderHistoryPageState extends State<OrderHistoryPage> {
   Future<List<dynamic>> _getHistory() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2/mycare_api/get_customer_orders.php?customer_id=${widget.userId}'));
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/get_customer_orders.php?customer_id=${widget.userId}'));
     if (response.statusCode == 200) {
       return json.decode(response.body)['data'];
     }
@@ -52,14 +53,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             itemBuilder: (context, index) {
               final order = orders[index];
               return Card(
-                margin: const EdgeInsets.bottom(16),
+                margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.between,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(order['package_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           Container(
